@@ -5,13 +5,13 @@ import java.security.MessageDigest
 /**
  * Reads lines from the given input txt file.
  */
-fun readInput(name: String) = File("src", "$name.txt")
+fun readInput(name: String) = File("inputFiles", "$name.txt")
     .readLines()
 
-fun readInt(name: String) = File("src", "$name.txt")
+fun readInt(name: String) = File("inputFiles", "$name.txt")
     .readLines().map { it.toInt() }
 
-fun readFileSplitEmptyline(name: String) = File("src", "$name.txt")
+fun readFileSplitEmptyline(name: String) = File("inputFiles", "$name.txt")
     .readText().split("\n\n")
 
 /**
