@@ -11,6 +11,9 @@ fun readInput(name: String) = File("src", "$name.txt")
 fun readInt(name: String) = File("src", "$name.txt")
     .readLines().map { it.toInt() }
 
+fun readFileSplitEmptyline(name: String) = File("src", "$name.txt")
+    .readText().split("\n\n")
+
 /**
  * Converts string to md5 hash.
  */
