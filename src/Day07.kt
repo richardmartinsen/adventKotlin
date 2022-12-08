@@ -1,21 +1,40 @@
+import java.io.File
+import kotlin.coroutines.Continuation
+
 fun main() {
     data class File(
         val file: String,
         val size: Int,
-    )
+    ) {
+        fun print() {
+            println("$file $size")
+        }
+    }
 
     data class Folder(
-        val path: String,
+        var path: String,
         val name: String,
         val folders: MutableList<Folder> = mutableListOf(),
         val files: MutableList<File> = mutableListOf(),
+        var parent: Folder? = null,
     ) {
         fun addFile(file: File) {
             files.add(file)
         }
 
-        fun addFolder(folder: Folder) {
+        fun addFolder(folder: Folder, parent: Folder) {
+            this.parent = parent
             folders.add(folder)
+        }
+
+        fun print() {
+            println("$path$name")
+            folders.forEach {
+                it.print()
+            }
+            files.forEach {
+                it.print()
+            }
         }
     }
 
@@ -25,109 +44,93 @@ fun main() {
         var currentFolder: Folder = files.first()
     ) {
         fun addFolder(folder: Folder) {
-            currentFolder.addFolder(folder)
+            println("add folder ${folder.path} in path ${currentFolder.path}")
+            folder.path = currentFolder.path
+            currentFolder.addFolder(folder, currentFolder)
             files = files.map{
                 if (currentFolder.path == it.path) {
                     currentFolder
                 } else it
             }
+            println("tree after add folder : ${this.print()}")
         }
 
         fun addFile(file: File) {
+            println("add file $file in path ${currentFolder.path}")
             currentFolder.addFile(file)
             files = files.map{
                 if (currentFolder.path == it.path) {
                     currentFolder
                 } else it
             }
+            println("tree after add file : ${this.print()}")
         }
+
         fun cd(folderName: String) {
+            println("${pwd} cd $folderName")
             if (folderName.equals("..")) {
-                currentFolder = files.first {
-                    it.path == pwd.substringBeforeLast("/")
-                }
+                if (currentFolder.parent == null)
+                    print("Already on root")
+                else
+                    currentFolder = currentFolder.parent!!
+
+//                    files.flatMap { it.folders }.firstOrNull {
+//                    it.path == pwd.substringBeforeLast("/").substringBeforeLast("/")
+//                } ?: currentFolder
             } else {
                 val desiredFolder = currentFolder.folders.find {
                     it.name == folderName
                 }
 
                 if (desiredFolder == null)
-                    println("This folder doesn't exist")
+                    println("Folder $desiredFolder doesn't exist")
                 else {
                     currentFolder = desiredFolder
-                    pwd += "/$folderName"
+                    pwd += "$folderName/"
                 }
             }
+            println("$pwd")
+        }
 
-
-
-
-//            val folders = pwd.split("/")
-//            folders.
+        fun print() {
+            println("root")
+            this.files.forEach {
+                it.folders.forEach {
+                    it.print()
+                }
+                it.files.forEach {
+                    it.print()
+                }
+            }
         }
     }
 
     fun part1(input: List<String>): Int {
-//        val files: List<Folder> = listOf(Folder("/","/"))
-        val root: Root = Root()
+        val root = Root()
         input.forEach {
-
+            val line = it.split(" ")
+            println(line)
+            when (line.first()) {
+                "$" -> when(line[1]) {
+                    "cd" -> if (!line.last().equals("/")) root.cd(line.last())
+                    else -> {}
+                }
+                "dir" -> root.addFolder(Folder(line.last(), line.last()))
+                else -> root.addFile(File(line.last(), line.first().toInt()))
+            }
         }
-
-
-
-        root.addFolder(Folder("a", "a"))
-        root.addFolder(Folder("b", "b"))
-        root.addFile(File("filnavn", 100))
-        root.addFile(File("enda en fil", 200))
-        root.cd("a")
-        root.addFolder(Folder("c", "c"))
-        root.addFolder(Folder("d", "d"))
-        root.addFile(File("rrrr", 100))
-        root.addFile(File("eeee", 200))
-        root.cd("..")
-        root.cd("b")
-        root.addFolder(Folder("e", "e"))
-        root.addFolder(Folder("f", "f"))
-        root.addFile(File("wwww", 100))
-        root.addFile(File("qqqq", 200))
-
-
-//        files.first { it.name == "/" }.let {
-//            it.addFile(File("en fil", 100))
-//        }
-//        files.first { it.name == "/" }.let {
-//            it.addFolder(Folder("a"))
-//            it.addFile(File("b.txt", 14848514))
-//            it.addFile(File("c.txt", 8504156))
-//            it.addFolder(Folder("d"))
-//        }
-//        files.first { it.name == "/" }.let {
-//            it.folders.first {
-//                it.name ==
-//            }
-//        }
-//        files
-//            .filter { it.name == "/" }
-//            .let { println(it)
-//                it.filter { it.folders.name == "a" }
-//            }
-//            .let {
-//                it.first().addFolder(Folder("e"))
-//                it.first().addFile(File("f", 29116))
-//                it.first().addFile(File("g", 2557))
-//                it.first().addFile(File("h.lst", 62596))
-//            }
+        root.print()
         return 0
     }
 
-    fun part2(input: List<String>): Int {
-        return 0
-    }
+//    fun part2(input: List<String>): Int {
+//        return 0
+//    }
 
     val input = readInput("Day07")
-    println(part1(input))
-    println(part2(input))
-    check(part1(input) == 0)
-    check(part2(input) == 0)
+    part1(input)
+//    println(part1(input))
+//    println(part2(input))
+//    check(part1(input) == 0)
+//    check(part2(input) == 0)
 }
